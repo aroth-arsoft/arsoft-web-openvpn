@@ -9,24 +9,12 @@
 <body>
 <h1 class="title">{{ title }}</h1>
 
-
-{% if errormessage %}
-<div class="errormessage">{{ errormessage }}</div>
-{% endif %}
-{% if statusmessage %}
-<div class="statusmessage">{{ statusmessage }}</div>
-{% endif %}
-<div class="changepwform">
-<form action="{% url "arsoft.web.kpasswd.views.changepw" %}" method="post">
-{% csrf_token %}
+{% for config in config_list %}
 <table class="changepw">
-<tr><td>Username</td><td><input type="text" name="username" id="username" value="{{ username }}" /></td></tr>
-<tr><td>Current password</td><td><input type="password" name="oldpassword" id="oldpassword" value="{{ oldpassword }}" /></td></tr>
-<tr><td>New password</td><td><input type="password" name="newpassword" id="newpassword" value="{{ newpassword }}" /></td></tr>
-<tr><td>Confirm password</td><td><input type="password" name="confpassword" id="confpassword" value="{{ confpassword }}" /></td></tr>
-<tr><td colspan="2" align="right"><input type="submit" value="Submit" /></td></tr>
+<tr><td>Name</td><td>{{ config.name }}</td></tr>
+<tr><td>Status</td><td>{{ config.name }}</td></tr>
 </table>
-</form>
-</div>
+{% endfor %}
+
 </body>
 </html>

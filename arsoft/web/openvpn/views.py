@@ -1,78 +1,46 @@
 from django.template import RequestContext, loader
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
-from arsoft.kerberos.kpasswd import kpasswd
+import arsoft.openvpn
+
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 def home(request):
-    try:
-        username = request.session['username']
-        result = request.session['result']
-        if result:
-            status_message = request.session['error_message']
-            error_message = ''
+
+    selected_vpns = ['myhome']
+    _config = arsoft.openvpn.Config()
+    _systemconfig = arsoft.openvpn.SystemConfig()
+    all_vpn_names = self._config.names
+    if len(selected_vpns) == 0:
+        selected_vpns = all_vpn_names
+
+    class ConfigItem(object):
+        def __init__(self, name, status=None):
+            self.name = name
+            self.status = status
+
+    config_list = []
+
+    logging.error('ddd')
+
+    for vpnname in selected_vpns:
+        config_file = arsoft.openvpn.ConfigFile(config_name=vpnname)
+        print(config_file)
+        if not config_file.valid:
+            config_list.append(ConfigItem(vpnname), 'invalid file')
         else:
-            error_message = request.session['error_message']
-            status_message = ''
-    except (KeyError):
-        error_message = ''
-        status_message = ''
-        username = ''
-        pass
+            config_list.append(ConfigItem(vpnname), 'valid file')
 
-    if 'REMOTE_USER' in request.META:
-        username = request.META['REMOTE_USER']
-    if 'HTTP_AUTHORIZATION' in request.META:
-        username = request.META['HTTP_AUTHORIZATION']
-
-    title = 'Change password service'
+    title = 'OpenVPN status'
 
     t = loader.get_template('home.html')
     c = RequestContext( request, { 
-        'errormessage':error_message, 
-        'statusmessage':status_message,
-        'username':username,
+        'config_list':config_list,
         'title':title
         })
     return HttpResponse(t.render(c))
 
-def changepw(request):
-    try:
-        username = request.POST['username']
-        oldpassword = request.POST['oldpassword']
-        newpassword = request.POST['newpassword']
-        confpassword = request.POST['confpassword']
-    except KeyError:
-        error_message = 'Insufficient data.'
-        username = None
-        pass
-        
-    if username:
-        if newpassword != confpassword:
-            error_message = 'New password and confirmation password do not match.'
-            result_code = False
-        elif oldpassword == '':
-            error_message = 'Current password not specified.'
-            result_code = False
-        elif newpassword == '':
-            error_message = 'No new password specified.'
-            result_code = False
-        else:
-            (ret, error_message) = kpasswd(username, oldpassword, newpassword)
-            if ret:
-                error_message = 'Successful.'
-                result_code = True
-            else:
-                error_message = 'Failed to change password. ' + error_message
-                result_code = False
-    else:
-        error_message = 'No user name specified.'
-        result_code = False
-
-
-    # Always return an HttpResponseRedirect after successfully dealing
-    # with POST data. This prevents data from being posted twice if a
-    # user hits the Back button.
-    request.session['username'] = username
-    request.session['error_message'] = error_message
-    request.session['result'] = result_code
-    return HttpResponseRedirect(reverse('arsoft.web.kpasswd.views.home'))
