@@ -16,6 +16,7 @@ SITE_ID = 1
 ALLOWED_HOSTS = ['*']
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '!lo6bsh)zoifi5(@r2u2&amp;#z=5(5cd6sz$z10iqvzdyv2z-u3v@'
+SECRET_KEY = 'ied6HieZ4ja3yeequae0oor1nia2ohWiegh4suawahai5thahBeiliechoh9Aema'
 
 
+DEBUG=1

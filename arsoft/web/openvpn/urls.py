@@ -7,11 +7,10 @@ from django.conf import settings
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', 'arsoft.web.kpasswd.views.home', name='home'),
-    url(r'^changepw$', 'arsoft.web.kpasswd.views.changepw', name='changepw'),
-#    url(r'^%s$' % settings.BASE_URL, 'arsoft.web.kpasswd.views.home', name='home'),
-#    url(r'^%s/changepw$' % settings.BASE_URL, 'arsoft.web.kpasswd.views.changepw', name='changepw'),
-    # url(r'^arsoft.web.kpasswd/', include('arsoft.web.kpasswd.foo.urls')),
+    url(r'^$', 'arsoft.web.openvpn.views.home', name='home'),
+#    url(r'^%s$' % settings.BASE_URL, 'arsoft.web.openvpn.views.home', name='home'),
+#    url(r'^%s/changepw$' % settings.BASE_URL, 'arsoft.web.openvpn.views.changepw', name='changepw'),
+    # url(r'^arsoft.web.openvpn/', include('arsoft.web.openvpn.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

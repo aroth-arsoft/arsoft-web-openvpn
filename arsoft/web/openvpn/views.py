@@ -14,26 +14,26 @@ def home(request):
     selected_vpns = ['myhome']
     _config = arsoft.openvpn.Config()
     _systemconfig = arsoft.openvpn.SystemConfig()
-    all_vpn_names = self._config.names
+    all_vpn_names = _config.names
     if len(selected_vpns) == 0:
         selected_vpns = all_vpn_names
 
     class ConfigItem(object):
-        def __init__(self, name, status=None):
+        def __init__(self, name, config_file, is_running, status_file, autostart=False):
             self.name = name
-            self.status = status
+            self.config_file = config_file
+            self.is_running = is_running
+            self.status_file = status_file
+            self.autostart = autostart
 
     config_list = []
 
-    logging.error('ddd')
-
     for vpnname in selected_vpns:
         config_file = arsoft.openvpn.ConfigFile(config_name=vpnname)
-        print(config_file)
-        if not config_file.valid:
-            config_list.append(ConfigItem(vpnname), 'invalid file')
-        else:
-            config_list.append(ConfigItem(vpnname), 'valid file')
+        is_running = _config.is_running(vpnname)
+        autostart = True if vpnname in _systemconfig.autostart else False
+        status_file = arsoft.openvpn.StatusFile(config_file=config_file)
+        config_list.append( ConfigItem(vpnname, config_file=config_file, is_running=is_running, status_file=status_file, autostart=autostart) )
 
     title = 'OpenVPN status'
 

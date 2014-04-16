@@ -7,12 +7,37 @@
 <title>{{ title }}</title>
 </head>
 <body>
-<h1 class="title">{{ title }}</h1>
+<h1 class="title">Here in {{ title }}</h1>
 
 {% for config in config_list %}
-<table class="changepw">
+<table class="vpn_config">
 <tr><td>Name</td><td>{{ config.name }}</td></tr>
-<tr><td>Status</td><td>{{ config.name }}</td></tr>
+<tr><td>filename</td><td>{{ config.config_file.filename }}</td></tr>
+<tr><td>Running</td><td>{{ config.is_running }}</td></tr>
+<tr><td>Auto-start</td><td>{{ config.autostart }}</td></tr>
+<tr><td>Status</td><td>{{ config.config_file.valid }}</td></tr>
+<tr><td>Server</td><td>{{ config.config_file.server }}</td></tr>
+<tr><td>Client</td><td>{{ config.config_file.client }}</td></tr>
+<tr><td>Status file</td><td>{{ config.config_file.status_file }} (version {{ config.config_file.status_version }})</td></tr>
+<tr><td>Log file</td><td>{{ config.config_file.logfile }}</td></tr>
+
+<tr><td>Routes</td><td>
+{% if config.config_file.routes == None %}
+<ul>
+{% for route in config.config_file.routes %}
+<li>{{ route }}</li>
+{% endfor %}
+</ul>
+{% else %}
+None
+{% endif %}
+</td></tr>
+
+{% if config.config_file.server  %}
+<tr><td>CCD</td><td>{{ config.config_file.client_config_directory }}</td></tr>
+<tr><td>Clients</td><td>
+</td></tr>
+{% endif %}
 </table>
 {% endfor %}
 
