@@ -16,17 +16,17 @@ body {
     text-align:center;
     font-size:large;
 }
-.changepwform  {
-    position:relative;
-    visibility:visible;
-    text-align: center;
-    vertical-align: middle;
+ul {
+list-style-type: square;
+margin: 0px;
 }
-.changepw {
-    visibility:visible;
-    table-layout: fixed;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: auto;
-    margin-bottom: auto;
+table {
+border-collapse:collapse;
+border: 1px solid black;
+}
+th, td {
+border: 1px solid black;
+text-align: left;
+vertical-align: top;
+padding:1px 3px 1px 3px;
 }
