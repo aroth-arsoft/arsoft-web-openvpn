@@ -1,6 +1,8 @@
-/arsoft-web-kpasswd/
+
+/arsoft-web-openvpn/
 /*.substvars
 /*.debhelper
+/*.debhelper.log
 /dirs
 /docs
 /files

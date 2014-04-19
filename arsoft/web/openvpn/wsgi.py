@@ -1,5 +1,5 @@
 """
-WSGI config for arsoft.web.kpasswd project.
+WSGI config for arsoft.web.openvpn project.
 
 This module contains the WSGI application used by Django's development server
 and any production WSGI deployments. It should expose a module-level variable
@@ -15,7 +15,7 @@ framework.
 """
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "arsoft.web.kpasswd.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "arsoft.web.openvpn.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION

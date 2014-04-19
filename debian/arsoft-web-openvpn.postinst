@@ -1,14 +1,14 @@
 #!/bin/sh -e
-PKG=arsoft-web-kpasswd
+PKG=arsoft-web-openvpn
 
 case "$1" in
     configure|upgrade)
         # make sure django log dir exists
         [ ! -d /var/log/django ] && mkdir /var/log/django
         # ... and create the log file if it does not exist
-        if [ ! -f /var/log/django/arsoft.web.kpasswd.log ]; then
-            touch /var/log/django/arsoft.web.kpasswd.log
-            chown www-data:www-data /var/log/django/arsoft.web.kpasswd.log
+        if [ ! -f /var/log/django/arsoft.web.openvpn.log ]; then
+            touch /var/log/django/arsoft.web.openvpn.log
+            chown www-data:www-data /var/log/django/arsoft.web.openvpn.log
         fi
         ;;
 esac
