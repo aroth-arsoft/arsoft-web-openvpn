@@ -17,16 +17,24 @@ body {
     font-size:large;
 }
 ul {
-list-style-type: square;
-margin: 0px;
+    list-style-type: square;
+    margin: 0px;
 }
 table {
-border-collapse:collapse;
-border: 1px solid black;
+    border-collapse:collapse;
 }
-th, td {
-border: 1px solid black;
-text-align: left;
-vertical-align: top;
-padding:1px 3px 1px 3px;
+tr, th, td {
+    border-style: inherit;
+    text-align: left;
+    vertical-align: top;
+    padding:1px 3px 1px 3px;
+}
+
+table.no_border {
+    border-style: none;
+}
+table.small_border {
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
 }

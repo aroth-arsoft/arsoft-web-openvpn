@@ -2,12 +2,39 @@ from django.template import RequestContext, loader
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 import arsoft.openvpn
+from arsoft.timestamp import UTC
+
+import datetime
 
 # import the logging library
 import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+class ConfigCertItem(object):
+    def __init__(self, cert_file_obj):
+        self._cert_file_obj = cert_file_obj
+        if self._cert_file_obj.certificates:
+            self._cert_obj = self._cert_file_obj.certificates[0]
+            now = datetime.datetime.utcnow().replace(tzinfo=UTC)
+            min_expire_in = datetime.timedelta(days=100*365)
+            min_expire_cert = None
+            for cert in self._cert_file_obj.certificates:
+                expire_in = cert.expire_date - now
+                if expire_in < min_expire_in:
+                    min_expire_in = expire_in
+                    min_expire_cert = cert
+
+        else:
+            self._cert_obj = None
+        self.filename = self._cert_file_obj.filename
+        self.subject = 'CN=%s' % self._cert_obj.subject.commonName if self._cert_obj else None
+        self.issuer = 'CN=%s' % self._cert_obj.issuer.commonName if self._cert_obj else None
+        if min_expire_cert:
+            self.expire_date = str(min_expire_cert.expire_date) + ' in ' + str(min_expire_in)
+        else:
+            self.expire_date = 'unavailable'
 
 
 class ConfigItem(object):
@@ -28,8 +55,11 @@ class ConfigItem(object):
             self.routes.append( '%s/%s' % (network, netmask))
         self.routing_table = []
         if self.status_file_obj.routing_table:
+            logger.error('%s routing_table=%s' % (self.name, self.status_file_obj.routing_table))
             for entry in self.status_file_obj.routing_table:
                 self.routing_table.append(str(entry))
+
+        self.certificate = ConfigCertItem(self.config_file.cert_file)
 
         self.client_config_directory = self.config_file.client_config_directory if self.server else None
         self.connection_state = self.status_file_obj.state.long_state
