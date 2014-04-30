@@ -2,7 +2,7 @@ from django.template import RequestContext, loader
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 import arsoft.openvpn
-from arsoft.timestamp import UTC
+from arsoft.timestamp import UTC, format_timedelta
 
 import datetime
 
@@ -32,7 +32,10 @@ class ConfigCertItem(object):
         self.subject = 'CN=%s' % self._cert_obj.subject.commonName if self._cert_obj else None
         self.issuer = 'CN=%s' % self._cert_obj.issuer.commonName if self._cert_obj else None
         if min_expire_cert:
-            self.expire_date = str(min_expire_cert.expire_date) + ' in ' + str(min_expire_in)
+            if min_expire_in.total_seconds() < 0:
+                self.expire_date = str(min_expire_cert.expire_date) + ' was ' + format_timedelta(min_expire_in)
+            else:
+                self.expire_date = str(min_expire_cert.expire_date) + ' in ' + format_timedelta(min_expire_in)
         else:
             self.expire_date = 'unavailable'
 
