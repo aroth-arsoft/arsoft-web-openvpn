@@ -1,3 +1,9 @@
+arsoft-web-openvpn (0.9) trusty; urgency=medium
+
+  * improve status report and format
+
+ -- Andreas Roth <aroth@arsoft-online.com>  Wed, 30 Apr 2014 07:04:21 +0200
+
 arsoft-web-openvpn (0.8) saucy; urgency=low
 
   * initial release
