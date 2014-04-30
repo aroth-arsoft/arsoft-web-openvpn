@@ -23,8 +23,10 @@ ul {
 table {
     border-collapse:collapse;
 }
-tr, th, td {
+tr, th, td, tbody {
     border-style: inherit;
+    border-color: inherit;
+    border-width: inherit;
     text-align: left;
     vertical-align: top;
     padding:1px 3px 1px 3px;
