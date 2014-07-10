@@ -1,3 +1,9 @@
+arsoft-web-openvpn (0.10) trusty; urgency=medium
+
+  * build with debug urls
+
+ -- Andreas Roth <aroth@arsoft-online.com>  Thu, 10 Jul 2014 14:21:42 +0200
+
 arsoft-web-openvpn (0.9) trusty; urgency=medium
 
   * improve status report and format
