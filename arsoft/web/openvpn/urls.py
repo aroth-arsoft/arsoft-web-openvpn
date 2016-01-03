@@ -9,6 +9,9 @@ from arsoft.web.utils import django_debug_urls
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', 'arsoft.web.openvpn.views.home', name='home'),
+    url(r'^log/(?P<name>\w+)$', 'arsoft.web.openvpn.views.log', name='log'),
+    url(r'^whatif/sub/$', 'arsoft.web.openvpn.views.log', name='log'),
+    url(r'^action/(?P<name>\w+)$', 'arsoft.web.openvpn.views.action', name='action'),
 #    url(r'^%s$' % settings.BASE_URL, 'arsoft.web.openvpn.views.home', name='home'),
 #    url(r'^%s/changepw$' % settings.BASE_URL, 'arsoft.web.openvpn.views.changepw', name='changepw'),
     # url(r'^arsoft.web.openvpn/', include('arsoft.web.openvpn.foo.urls')),

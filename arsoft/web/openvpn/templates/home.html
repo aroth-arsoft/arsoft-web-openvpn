@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 {% load static_url %}
+{% load base_url %}
 <link rel="stylesheet" type="text/css" href="{% static_url "main.css" %}" />
 <title>{{ title }}</title>
 </head>
@@ -17,19 +18,43 @@
 {% endif %}
 <table class="small_border">
 <tr><td>Config file</td><td>{{ config.filename }}</td></tr>
-<tr><td>Running</td><td>{{ config.is_running }}</td></tr>
-<tr><td>Auto-start</td><td>{{ config.autostart }}</td></tr>
-<tr><td>State</td><td>{{ config.connection_state }}</td></tr>
+<tr>
+    <td>Running</td>
+    <td class="status_{{ config.running_state }}">
+        <form action="{% url 'action' config.name %}" method="post">{% csrf_token %}
+        <input type="hidden" name="vpnname" value="{{ config.name }}">
+        {{ config.is_running|yesno:"Yes,No,Unknown" }}
+{% if config.is_running  %}
+        <input type="hidden" name="action" value="restart"><input type="submit" value="Restart">
+{% else  %}
+        <input type="hidden" name="action" value="stop"><input type="submit" value="Stop">
+{% endif %}
+</form>
+    </td>
+</tr>
+<tr><td>Auto-start</td><td>{{ config.autostart|yesno:"Yes,No,Unknown" }}</td></tr>
+<tr><td>State</td><td class="status_{{ config.connection_state }}">{{ config.connection_state_desc }}</td></tr>
+<tr><td>Last status update</td><td class="status_{{ config.last_update_state }}">{{ config.last_update|date:"r" }} ({{ config.last_update|timesince }} ago)</td></tr>
+<tr><td>Last state change</td><td>{{ config.last_state_change|date:"r" }} ({{ config.last_state_change|timesince }} ago)</td></tr>
 <tr><td>Status file</td><td>{{ config.status_file }} (version {{ config.status_version }})</td></tr>
-<tr><td>Log file</td><td>{{ config.logfile }}</td></tr>
+<tr><td>Log file</td><td><a href="{% url 'log' config.name %}">{{ config.logfile }}</a></td></tr>
 <tr><td>Certificate</td><td>
-
-<table class="no_border">
-<tr><td>Filename</td><td>{{ config.certificate.filename }}</td></tr>
-<tr><td>Subject</td><td>{{ config.certificate.subject }}</td></tr>
-<tr><td>Issuer</td><td>{{ config.certificate.issuer }}</td></tr>
-<tr><td>Expire date</td><td>{{ config.certificate.expire_date }}</td></tr>
-</table>
+    <table class="no_border">
+    <tr><td>Filename</td><td>{{ config.certificate.filename }}</td></tr>
+    <tr><td>Subject</td><td>{{ config.certificate.subject }}</td></tr>
+    <tr><td>Issuer</td><td>{{ config.certificate.issuer }}</td></tr>
+    <tr><td>Issue date</td><td>{{ config.certificate.issue_date|date:"r" }} ({{ config.certificate.issue_date|timesince }} ago)</td></tr>
+    <tr><td>Expire date</td><td>{{ config.certificate.expire_date|date:"r" }} (in {{ config.certificate.expire_date|timeuntil }})</td></tr>
+    </table>
+</td></tr>
+<tr><td>CA Certificate</td><td>
+    <table class="no_border">
+    <tr><td>Filename</td><td>{{ config.ca_certificate.filename }}</td></tr>
+    <tr><td>Subject</td><td>{{ config.ca_certificate.subject }}</td></tr>
+    <tr><td>Issuer</td><td>{{ config.ca_certificate.issuer }}</td></tr>
+    <tr><td>Issue date</td><td>{{ config.ca_certificate.issue_date|date:"r" }} ({{ config.ca_certificate.issue_date|timesince }} ago)</td></tr>
+    <tr><td>Expire date</td><td>{{ config.ca_certificate.expire_date|date:"r" }} (in {{ config.ca_certificate.expire_date|timeuntil }})</td></tr>
+    </table>
 </td></tr>
 
 <tr><td>Configured routes</td><td><ul>

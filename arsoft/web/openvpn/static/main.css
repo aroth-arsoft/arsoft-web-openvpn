@@ -12,9 +12,44 @@ body {
     text-align:center;
     color:blue;
 }
+.status_ok {
+    font-weight:bold;
+    background-color: #00cc33;
+    color:white;
+}
+.status_critical {
+    font-weight:bold;
+    background-color: #ff3300;
+    color:white;
+}
+.status_warning {
+    font-weight:bold;
+    background-color: #ffa500;
+    color:white;
+}
+.status_unknown {
+    font-weight:bold;
+    background-color: #bf44b2;
+    color:white;
+}
 .title {
-    text-align:center;
+    text-align:left;
     font-size:large;
+}
+h1 {
+    text-align: left;
+    font-weight:bold;
+    font-size:x-large;
+}
+h2 {
+    text-align: left;
+    font-weight:bold;
+    font-size:large;
+}
+h3 {
+    text-align: left;
+    font-weight:bold;
+    font-size:medium;
 }
 ul {
     list-style-type: square;

@@ -1,6 +1,6 @@
 from django.template import RequestContext, loader
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 import arsoft.openvpn
 from arsoft.timestamp import UTC, format_timedelta
 
@@ -15,11 +15,12 @@ logger = logging.getLogger(__name__)
 class ConfigCertItem(object):
     def __init__(self, cert_file_obj):
         self._cert_file_obj = cert_file_obj
+
+        min_expire_cert = None
         if self._cert_file_obj.certificates:
             self._cert_obj = self._cert_file_obj.certificates[0]
             now = datetime.datetime.utcnow().replace(tzinfo=UTC)
             min_expire_in = datetime.timedelta(days=100*365)
-            min_expire_cert = None
             for cert in self._cert_file_obj.certificates:
                 expire_in = cert.expire_date - now
                 if expire_in < min_expire_in:
@@ -31,14 +32,8 @@ class ConfigCertItem(object):
         self.filename = self._cert_file_obj.filename
         self.subject = 'CN=%s' % self._cert_obj.subject.commonName if self._cert_obj else None
         self.issuer = 'CN=%s' % self._cert_obj.issuer.commonName if self._cert_obj else None
-        if min_expire_cert:
-            if min_expire_in.total_seconds() < 0:
-                self.expire_date = str(min_expire_cert.expire_date) + ' was ' + format_timedelta(min_expire_in)
-            else:
-                self.expire_date = str(min_expire_cert.expire_date) + ' in ' + format_timedelta(min_expire_in)
-        else:
-            self.expire_date = 'unavailable'
-
+        self.expire_date = min_expire_cert.expire_date if min_expire_cert else None
+        self.issue_date = min_expire_cert.issue_date if min_expire_cert else None
 
 class ConfigItem(object):
     def __init__(self, hub, config_file):
@@ -53,6 +48,7 @@ class ConfigItem(object):
         self.status_file = self.config_file.status_file
         self.logfile = self.config_file.logfile if self.config_file.logfile else self.config_file.logfile_append
         self.server = self.config_file.server
+
         self.routes = []
         for (network, netmask) in self.config_file.routes:
             self.routes.append( '%s/%s' % (network, netmask))
@@ -63,9 +59,12 @@ class ConfigItem(object):
                 self.routing_table.append(str(entry))
 
         self.certificate = ConfigCertItem(self.config_file.cert_file)
+        self.ca_certificate = ConfigCertItem(self.config_file.ca_file)
 
         self.client_config_directory = self.config_file.client_config_directory if self.server else None
-        self.connection_state = self.status_file_obj.state.long_state
+        self.connection_state_desc = self.status_file_obj.state.long_state if self.status_file_obj.state else None
+        self.last_state_change = self.status_file_obj.state.timestamp if self.status_file_obj.state else None
+        self.last_update = self.status_file_obj.last_update if self.status_file_obj else None
         self.connected_clients = []
         self.configured_clients = []
         if self.server:
@@ -75,6 +74,41 @@ class ConfigItem(object):
             if self.config_file.client_config_files:
                 for (clientname, ccdfile) in self.config_file.client_config_files.iteritems():
                     self.configured_clients.append(clientname)
+        
+        self.connection_state = 'unknown'
+        self.running_state = 'unknown'
+        self.last_update_state = 'unknown'
+        if self.is_running and self.last_update:
+            #now = datetime.datetime.utcnow().replace(tzinfo=UTC)
+            now = datetime.datetime.now()
+            time_since_last_update = now - self.last_update
+            if time_since_last_update > datetime.timedelta(minutes=10):
+                self.last_update_state = 'warning'
+            else:
+                self.last_update_state = 'ok'
+
+        if self.autostart:
+            if self.status_file_obj.state:
+                if self.status_file_obj.state.is_down:
+                    self.connection_state = 'critical'
+                elif self.status_file_obj.state.is_connected:
+                    self.connection_state = 'ok'
+                else:
+                    self.connection_state = 'warning'
+            if self.is_running:
+                self.running_state = 'ok'
+            else:
+                self.running_state = 'critical'
+        else:
+            if self.status_file_obj.state:
+                if self.status_file_obj.state.is_down:
+                    self.connection_state = 'ok'
+                else:
+                    self.connection_state = 'critical'
+            if self.is_running:
+                self.running_state = 'critical'
+            else:
+                self.running_state = 'ok'
 
 
 
@@ -94,6 +128,23 @@ class ConfigHub(object):
             item = ConfigItem(self, arsoft.openvpn.ConfigFile(config_name=vpnname))
             ret.append(item)
         return ret
+    
+    def logfile(self, vpnname):
+        cfgfile = arsoft.openvpn.ConfigFile(config_name=vpnname)
+        return cfgfile.logfile if cfgfile.logfile else cfgfile.logfile_append
+    
+    def config_file(self, vpnname):
+        return arsoft.openvpn.ConfigFile(config_name=vpnname)
+    
+    def invoke_rc_d_openvpn(self, action, vpnname):
+        invoke_args = ['/usr/bin/sudo', '/usr/sbin/invoke-rc.d', 'openvpn', action, vpnname]
+        (sts, stdoutdata, stderrdata) = arsoft.utils.runcmdAndGetData(invoke_args)
+        return (sts, stdoutdata, stderrdata)
+
+    def read_log(self, vpnname):
+        invoke_args = ['/usr/bin/sudo', '/usr/bin/openvpn-admin', '--log', vpnname]
+        (sts, stdoutdata, stderrdata) = arsoft.utils.runcmdAndGetData(invoke_args)
+        return (sts, stdoutdata, stderrdata)
 
 def home(request):
 
@@ -108,4 +159,47 @@ def home(request):
         'title':title
         })
     return HttpResponse(t.render(c))
+
+def action(request, name):
+    action = request.POST.get("action", "")
+    if not name:
+        raise Http404("No VPN name specified.")
+    if not action:
+        raise Http404("No action for VPN %s specified." % name)
+
+    hub = ConfigHub()
+    configfile = hub.config_file(name)
+    if configfile is None or not configfile.valid:
+        raise Http404("Unable to get confgi for VPN %s" % name)
+    
+    if action == 'stop':
+        (sts, stdoutdata, stderrdata) = hub.invoke_rc_d_openvpn('stop', name)
+        ret = True if sts == 0 else False
+        content = stdoutdata if ret else stderrdata
+    elif action == 'start':
+        (sts, stdoutdata, stderrdata) = hub.invoke_rc_d_openvpn('start', name)
+        ret = True if sts == 0 else False
+        content = stdoutdata if ret else stderrdata
+    elif action == 'restart':
+        (sts, stdoutdata, stderrdata) = hub.invoke_rc_d_openvpn('restart', name)
+        ret = True if sts == 0 else False
+        content = stdoutdata if ret else stderrdata
+    else:
+        ret = False
+
+    if ret:
+        content = 'OK'
+    else:
+        content = hub.config.last_error
+    return HttpResponse(content, content_type='text/plain')
+
+def log(request, name):
+    hub = ConfigHub()
+    
+    (sts, stdoutdata, stderrdata) = hub.read_log(name)
+        
+    status = 200 if sts == 0 else 400
+    content = stdoutdata if sts == 0 else stderrdata
+
+    return HttpResponse(content, status=status, content_type='text/plain')
 
