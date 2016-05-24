@@ -4,7 +4,7 @@
 from distutils.core import setup
 
 setup(name='arsoft-web-openvpn',
-		version='0.14',
+		version='0.15',
 		description='shows the status of OpenVPN via web',
 		author='Andreas Roth',
 		author_email='aroth@arsoft-online.com',

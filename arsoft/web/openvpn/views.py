@@ -69,10 +69,10 @@ class ConfigItem(object):
         self.configured_clients = []
         if self.server:
             if self.status_file_obj.connected_clients:
-                for (clientname, clientinfo) in self.status_file_obj.connected_clients.iteritems():
+                for (clientname, clientinfo) in self.status_file_obj.connected_clients.items():
                     self.connected_clients.append(str(clientinfo))
             if self.config_file.client_config_files:
-                for (clientname, ccdfile) in self.config_file.client_config_files.iteritems():
+                for (clientname, ccdfile) in self.config_file.client_config_files.items():
                     self.configured_clients.append(clientname)
         
         self.connection_state = 'unknown'
