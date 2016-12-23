@@ -9,7 +9,9 @@
 </head>
 <body>
 <h1 class="title">{{ title }}</h1>
-
+{% if not config_list %}
+<p><b>No OpenVPN config found.</b></p>
+{% else  %}
 {% for config in config_list %}
 {% if config.server  %}
 <h2>{{ config.name }} (Server)</h2>
@@ -95,6 +97,6 @@
 {% endif %}
 </table>
 {% endfor %}
-
+{% endif %}
 </body>
 </html>
