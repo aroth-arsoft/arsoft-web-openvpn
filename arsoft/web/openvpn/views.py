@@ -137,7 +137,7 @@ class ConfigHub(object):
         return arsoft.openvpn.ConfigFile(config_name=vpnname)
     
     def invoke_rc_d_openvpn(self, action, vpnname):
-        invoke_args = ['/usr/bin/sudo', '/usr/sbin/invoke-rc.d', 'openvpn', action, vpnname]
+        invoke_args = ['/usr/bin/sudo', '/usr/bin/openvpn-admin', '--' + action, vpnname]
         (sts, stdoutdata, stderrdata) = arsoft.utils.runcmdAndGetData(invoke_args)
         return (sts, stdoutdata, stderrdata)
 
@@ -154,11 +154,11 @@ def home(request):
     logger.error('config_list=%s' % hub.list())
 
     t = loader.get_template('home.html')
-    c = RequestContext( request, { 
+    c = {
         'config_list':hub.list(),
         'title':title
-        })
-    return HttpResponse(t.render(c))
+        }
+    return HttpResponse(t.render(c, request))
 
 def action(request, name):
     action = request.POST.get("action", "")
