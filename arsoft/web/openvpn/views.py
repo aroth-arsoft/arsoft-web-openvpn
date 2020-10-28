@@ -1,5 +1,5 @@
 from django.template import RequestContext, loader
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 import arsoft.openvpn
 from arsoft.timestamp import UTC, format_timedelta

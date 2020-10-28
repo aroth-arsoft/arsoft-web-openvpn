@@ -49,6 +49,7 @@ function venv_export_archive() {
 }
 
 function venv_run_gunicorn() {
+    echo "venv_run_gunicorn"
     local FLASK_SERVER_PORT=`awk '/FLASK_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
     local opts=''
     opts="$opts --chdir $SCRIPTDIR"
@@ -307,7 +308,11 @@ function venv_run() {
         venv_run_gunicorn
         RES=$?
     else
-        python3 "$SCRIPTDIR/app.py"
+        if [ -f "$SCRIPTDIR/manage.py" ]; then
+            python3 "$SCRIPTDIR/manage.py" runserver
+        else
+            python3 "$SCRIPTDIR/app.py"
+        fi
         RES=$?
     fi
     deactivate

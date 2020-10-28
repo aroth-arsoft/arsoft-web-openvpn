@@ -1,3 +1,5 @@
 gunicorn>=19.0
 Django>=3.1.2
 lxml>=4.5.2
+pyOpenSSL>=19.1.0
+distro==1.5.0
