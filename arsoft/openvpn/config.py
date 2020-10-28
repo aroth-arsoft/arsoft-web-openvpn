@@ -38,11 +38,17 @@ class OpenVPNDefaults(object):
 class Config(object):
 
     def __init__(self,
+                 root_directory=None,
                  configdir=OpenVPNDefaults.config_directory,
                  rundir=OpenVPNDefaults.run_directory,
                  extension=OpenVPNDefaults.config_extension):
-        self._config_directory = configdir
-        self._run_directory = rundir
+        if root_directory:
+            self._config_directory = root_directory + configdir
+            self._run_directory = root_directory + rundir
+        else:
+            self._config_directory = configdir
+            self._run_directory = rundir
+
         self._config_extension = extension
         self.refresh()
         self.last_error = None

@@ -5,6 +5,7 @@ import arsoft.openvpn
 from arsoft.timestamp import UTC, format_timedelta
 
 import datetime
+import os
 
 # import the logging library
 import logging
@@ -114,8 +115,9 @@ class ConfigItem(object):
 
 class ConfigHub(object):
     def __init__(self):
-        self.config = arsoft.openvpn.Config()
-        self.systemconfig = arsoft.openvpn.SystemConfig()
+        rootdir = os.getenv('ROOTDIR', '/')
+        self.config = arsoft.openvpn.Config(root_directory=rootdir)
+        self.systemconfig = arsoft.openvpn.SystemConfig(root_directory=rootdir)
 
     def list(self, selected_vpns=[]):
         ret = []

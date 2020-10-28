@@ -323,9 +323,9 @@ function venv_run() {
         RES=$?
     else
         if [ -f "$SCRIPTDIR/manage.py" ]; then
-            python3 "$SCRIPTDIR/manage.py" runserver "0.0.0.0:$DJANGO_SERVER_PORT"
+            ROOTDIR="$SCRIPTDIR" python3 "$SCRIPTDIR/manage.py" runserver "0.0.0.0:$DJANGO_SERVER_PORT"
         else
-            python3 "$SCRIPTDIR/app.py"
+            ROOTDIR="$SCRIPTDIR" python3 "$SCRIPTDIR/app.py"
         fi
         RES=$?
     fi
