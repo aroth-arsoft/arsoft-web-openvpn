@@ -50,7 +50,11 @@ function venv_export_archive() {
 
 function venv_run_gunicorn() {
     echo "venv_run_gunicorn"
-    local FLASK_SERVER_PORT=`awk '/FLASK_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
+    local DJANGO_SERVER_PORT=8001
+    if [ -f $SCRIPTDIR/settings.py ]; then
+        DJANGO_SERVER_PORT=`awk '/DJANGO_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
+    fi
+    [ -z "$DJANGO_SERVER_PORT" ] && DJANGO_SERVER_PORT=8001
     local opts=''
     opts="$opts --chdir $SCRIPTDIR"
     if [ -f "$SCRIPTDIR/server_cert.pem" -a -f "$SCRIPTDIR/server_key.pem" ]; then
@@ -59,7 +63,7 @@ function venv_run_gunicorn() {
     if [ -f "$SCRIPTDIR/logging.conf" ]; then
         opts="$opts --log-config=$SCRIPTDIR/logging.conf"
     fi
-    opts="$opts --bind 0.0.0.0:$FLASK_SERVER_PORT"
+    opts="$opts --bind 0.0.0.0:$DJANGO_SERVER_PORT"
     if [ $verbose -ne 0 ]; then
         opts="$opts --log-level debug"
     fi
@@ -158,7 +162,11 @@ function venv_build_docker() {
     local tmpdir=`mktemp -d`
     local dockerfile="$tmpdir/Dockerfile"
     local appname=`basename $SCRIPTDIR`
-    local FLASK_SERVER_PORT=`awk '/FLASK_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
+    local DJANGO_SERVER_PORT=8001
+    if [ -f $SCRIPTDIR/settings.py ]; then
+        DJANGO_SERVER_PORT=`awk '/DJANGO_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
+    fi
+    [ -z "$DJANGO_SERVER_PORT" ] && DJANGO_SERVER_PORT=8001
 
     venv_build_wheels || return 1
 
@@ -177,7 +185,7 @@ ARG TAG=$from_tag
 FROM python:\$TAG
 ADD *.tar.gz /app/
 ${no_wheels}ADD *.whl /tmp/wheel/
-EXPOSE $FLASK_SERVER_PORT
+EXPOSE $DJANGO_SERVER_PORT
 RUN test ! -d /tmp/wheel && mkdir -p /tmp/wheel ; \
     find /tmp/wheel -type f -exec pip install {} \; && \
     rm -rf /tmp/wheel && \
@@ -251,16 +259,16 @@ EOF
         cp "$SCRIPTDIR/entrypoint.sh" "$tmpdir"
         cat >> "$dockerfile" <<EOF
 ADD entrypoint.sh /app/
-CMD ["bash", "/app/entrypoint.sh", "$appname", "$FLASK_SERVER_PORT"]
+CMD ["bash", "/app/entrypoint.sh", "$appname", "$DJANGO_SERVER_PORT"]
 EOF
     else
         if [ $verbose -ne 0 ]; then
             cat >> "$dockerfile" <<EOF
-CMD ["gunicorn", "--chdir", "/app/$appname", "--log-level", "debug", "--log-config", "/app/etc/logging.conf", "--bind", "0.0.0.0:$FLASK_SERVER_PORT", "app:app"]
+CMD ["gunicorn", "--chdir", "/app/$appname", "--log-level", "debug", "--log-config", "/app/etc/logging.conf", "--bind", "0.0.0.0:$DJANGO_SERVER_PORT", "app:app"]
 EOF
         else
             cat >> "$dockerfile" <<EOF
-CMD ["gunicorn", "--chdir", "/app/$appname", "--log-config", "/app/etc/logging.conf", "--bind", "0.0.0.0:$FLASK_SERVER_PORT", "app:app"]
+CMD ["gunicorn", "--chdir", "/app/$appname", "--log-config", "/app/etc/logging.conf", "--bind", "0.0.0.0:$DJANGO_SERVER_PORT", "app:app"]
 EOF
         fi
     fi
@@ -303,13 +311,19 @@ EOF
 }
 
 function venv_run() {
+    local DJANGO_SERVER_PORT=8001
+    if [ -f $SCRIPTDIR/settings.py ]; then
+        DJANGO_SERVER_PORT=`awk '/DJANGO_SERVER_PORT/ { print $3}' $SCRIPTDIR/settings.py`
+    fi
+    [ -z "$DJANGO_SERVER_PORT" ] && DJANGO_SERVER_PORT=8001
+
     . "$VENV_DIR/bin/activate"
     if [ $venv_gunicorn -ne 0 ]; then
         venv_run_gunicorn
         RES=$?
     else
         if [ -f "$SCRIPTDIR/manage.py" ]; then
-            python3 "$SCRIPTDIR/manage.py" runserver
+            python3 "$SCRIPTDIR/manage.py" runserver "0.0.0.0:$DJANGO_SERVER_PORT"
         else
             python3 "$SCRIPTDIR/app.py"
         fi
