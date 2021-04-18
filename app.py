@@ -1,4 +1,4 @@
-#!end python
+#!env python
 # -*- coding: utf-8 -*-
 #
 
